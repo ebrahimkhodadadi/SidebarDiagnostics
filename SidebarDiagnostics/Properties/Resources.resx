@@ -9,6 +9,7 @@
     that is mostly human readable. The generation and parsing of the 
     various data types are done through the TypeConverter classes 
     associated with the data types.
+    
     Example:
     
     ... ado.net/XML headers & schema ...
@@ -1039,5 +1040,21 @@
   <data name="SettingsShowMachineNameTooltip" xml:space="preserve">
     <value>Shows the name of the computer.</value>
     <comment>Settings show machine name tooltip</comment>
+  </data>
+  <data name="SettingsPingHost" xml:space="preserve">
+    <value>Ping Host</value>
+    <comment>Settings ping host label</comment>
+  </data>
+  <data name="SettingsPingHostTooltip" xml:space="preserve">
+    <value>The host to ping for latency measurement.</value>
+    <comment>Settings ping host tooltip</comment>
+  </data>
+  <data name="NetworkPing" xml:space="preserve">
+    <value>Ping</value>
+    <comment>Full name for network ping metric</comment>
+  </data>
+  <data name="NetworkPingLabel" xml:space="preserve">
+    <value>Ping</value>
+    <comment>Short label for network ping metric</comment>
   </data>
 </root>

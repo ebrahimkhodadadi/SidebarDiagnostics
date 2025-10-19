@@ -1041,4 +1041,16 @@
     <value>Muestra el nombre de la computadora.</value>
     <comment>Settings show machine name tooltip</comment>
   </data>
+  <data name="SettingsPingHost" xml:space="preserve">
+    <value />
+  </data>
+  <data name="SettingsPingHostTooltip" xml:space="preserve">
+    <value />
+  </data>
+  <data name="NetworkPing" xml:space="preserve">
+    <value />
+  </data>
+  <data name="NetworkPingLabel" xml:space="preserve">
+    <value />
+  </data>
 </root>

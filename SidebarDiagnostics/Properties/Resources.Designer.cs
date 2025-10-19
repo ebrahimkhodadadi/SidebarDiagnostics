@@ -19,7 +19,7 @@ namespace SidebarDiagnostics.Framework {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -817,6 +817,24 @@ namespace SidebarDiagnostics.Framework {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ping.
+        /// </summary>
+        public static string NetworkPing {
+            get {
+                return ResourceManager.GetString("NetworkPing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ping.
+        /// </summary>
+        public static string NetworkPingLabel {
+            get {
+                return ResourceManager.GetString("NetworkPingLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to RAM.
         /// </summary>
         public static string RAM {
@@ -1569,6 +1587,24 @@ namespace SidebarDiagnostics.Framework {
         public static string SettingsMonitorsTab {
             get {
                 return ResourceManager.GetString("SettingsMonitorsTab", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ping Host.
+        /// </summary>
+        public static string SettingsPingHost {
+            get {
+                return ResourceManager.GetString("SettingsPingHost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The host to ping for latency measurement..
+        /// </summary>
+        public static string SettingsPingHostTooltip {
+            get {
+                return ResourceManager.GetString("SettingsPingHostTooltip", resourceCulture);
             }
         }
         
