@@ -1167,7 +1167,7 @@ namespace SidebarDiagnostics.Monitoring
         private const string BYTESRECEIVEDPERSECOND = "Bytes Received/sec";
         private const string BYTESSENTPERSECOND = "Bytes Sent/sec";
 
-        public NetworkMonitor(string id, string name, string extIP, MetricConfig[] metrics, bool showName = true, bool roundAll = false, bool useBytes = false, double bandwidthInAlert = 0, double bandwidthOutAlert = 0) : base(id, name, showName)
+        public NetworkMonitor(string id, string name, string extIP, MetricConfig[] metrics, bool showName = true, bool roundAll = false, bool useBytes = false, double bandwidthInAlert = 0, double bandwidthOutAlert = 0, string pingHost = "8.8.8.8") : base(id, name, showName)
         {
             iConverter _converter;
 
@@ -1207,6 +1207,11 @@ namespace SidebarDiagnostics.Monitoring
                 _metrics.Add(new PCMetric(new PerformanceCounter(CATEGORYNAME, BYTESSENTPERSECOND, id), MetricKey.NetworkOut, DataType.kbps, null, roundAll, bandwidthOutAlert, _converter));
             }
 
+            if (metrics.IsEnabled(MetricKey.NetworkPing))
+            {
+                _metrics.Add(new PingMetric(pingHost, MetricKey.NetworkPing, DataType.Millisecond, null, roundAll));
+            }
+
             Metrics = _metrics.ToArray();
         }
 
@@ -1242,6 +1247,7 @@ namespace SidebarDiagnostics.Monitoring
             bool _useBytes = parameters.GetValue<bool>(ParamKey.UseBytes);
             int _bandwidthInAlert = parameters.GetValue<int>(ParamKey.BandwidthInAlert);
             int _bandwidthOutAlert = parameters.GetValue<int>(ParamKey.BandwidthOutAlert);
+            string _pingHost = parameters.GetValue<string>(ParamKey.PingHost);
 
             string _extIP = null;
 
@@ -1256,7 +1262,7 @@ namespace SidebarDiagnostics.Monitoring
                 from n in merged.DefaultIfEmpty(hw).Select(n => { n.ActualName = hw.Name; return n; })
                 where n.Enabled
                 orderby n.Order descending, n.Name ascending
-                select new NetworkMonitor(n.ID, n.Name ?? n.ActualName, _extIP, metrics, _showName, _roundAll, _useBytes, _bandwidthInAlert, _bandwidthOutAlert)
+                select new NetworkMonitor(n.ID, n.Name ?? n.ActualName, _extIP, metrics, _showName, _roundAll, _useBytes, _bandwidthInAlert, _bandwidthOutAlert, _pingHost)
                 ).ToArray();
         }
 
@@ -1796,6 +1802,69 @@ namespace SidebarDiagnostics.Monitoring
         }
     }
 
+    public class PingMetric : BaseMetric
+    {
+        public PingMetric(string host, MetricKey key, DataType dataType, string label = null, bool round = false, double alertValue = 0, iConverter converter = null) : base(key, dataType, label, round, alertValue, converter)
+        {
+            _host = host;
+            _ping = new Ping();
+        }
+
+        public new void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    if (_ping != null)
+                    {
+                        _ping.Dispose();
+                        _ping = null;
+                    }
+                }
+
+                _disposed = true;
+            }
+        }
+
+        ~PingMetric()
+        {
+            Dispose(false);
+        }
+
+        public override void Update()
+        {
+            try
+            {
+                PingReply reply = _ping.Send(_host, 1000);
+                if (reply.Status == IPStatus.Success)
+                {
+                    Update(reply.RoundtripTime);
+                }
+                else
+                {
+                    Text = "No Response";
+                }
+            }
+            catch
+            {
+                Text = "Error";
+            }
+        }
+
+        private string _host { get; set; }
+        private Ping _ping { get; set; }
+        private bool _disposed { get; set; } = false;
+    }
+
     public class PCMetric : BaseMetric
     {
         public PCMetric(PerformanceCounter counter, MetricKey key, DataType dataType, string label = null, bool round = false, double alertValue = 0, iConverter converter = null) : base(key, dataType, label, round, alertValue, converter)
@@ -2171,20 +2240,22 @@ namespace SidebarDiagnostics.Monitoring
                         Enabled = true,
                         Order = 1,
                         Hardware = new HardwareConfig[0],
-                        Metrics = new MetricConfig[4]
+                        Metrics = new MetricConfig[5]
                         {
                             new MetricConfig(MetricKey.NetworkIP, true),
                             new MetricConfig(MetricKey.NetworkExtIP, false),
                             new MetricConfig(MetricKey.NetworkIn, true),
-                            new MetricConfig(MetricKey.NetworkOut, true)
+                            new MetricConfig(MetricKey.NetworkOut, true),
+                            new MetricConfig(MetricKey.NetworkPing, true)
                         },
-                        Params = new ConfigParam[5]
+                        Params = new ConfigParam[6]
                         {
                             ConfigParam.Defaults.HardwareNames,
                             ConfigParam.Defaults.RoundAll,
                             ConfigParam.Defaults.UseBytes,
                             ConfigParam.Defaults.BandwidthInAlert,
-                            ConfigParam.Defaults.BandwidthOutAlert
+                            ConfigParam.Defaults.BandwidthOutAlert,
+                            ConfigParam.Defaults.PingHost
                         }
                     }
                 };
@@ -2408,6 +2479,7 @@ namespace SidebarDiagnostics.Monitoring
         NetworkExtIP = 27,
         NetworkIn = 18,
         NetworkOut = 19,
+        NetworkPing = 28,
 
         DriveLoadBar = 20,
         DriveLoad = 21,
@@ -2545,6 +2617,9 @@ namespace SidebarDiagnostics.Monitoring
                     case ParamKey.UseGHz:
                         return Resources.SettingsUseGHz;
 
+                    case ParamKey.PingHost:
+                        return Resources.SettingsPingHost;
+
                     default:
                         return "Unknown";
                 }
@@ -2598,6 +2673,9 @@ namespace SidebarDiagnostics.Monitoring
 
                     case ParamKey.UseGHz:
                         return Resources.SettingsUseGHzTooltip;
+
+                    case ParamKey.PingHost:
+                        return Resources.SettingsPingHostTooltip;
 
                     default:
                         return "Unknown";
@@ -2726,6 +2804,14 @@ namespace SidebarDiagnostics.Monitoring
                     return new ConfigParam() { Key = ParamKey.UseGHz, Value = false };
                 }
             }
+
+            public static ConfigParam PingHost
+            {
+                get
+                {
+                    return new ConfigParam() { Key = ParamKey.PingHost, Value = "8.8.8.8" };
+                }
+            }
         }
     }
 
@@ -2745,7 +2831,8 @@ namespace SidebarDiagnostics.Monitoring
         RoundAll,
         DriveSpace,
         DriveIO,
-        UseGHz
+        UseGHz,
+        PingHost
     }
 
     public enum DataType : byte
@@ -2774,7 +2861,8 @@ namespace SidebarDiagnostics.Monitoring
         RPM,
         Celcius,
         Fahrenheit,
-        IP
+        IP,
+        Millisecond
     }
 
     public interface iConverter
@@ -3160,6 +3248,9 @@ namespace SidebarDiagnostics.Monitoring
                 case MetricKey.DriveWrite:
                     return Resources.DriveWrite;
 
+                case MetricKey.NetworkPing:
+                    return Resources.NetworkPing;
+
                 default:
                     return "Unknown";
             }
@@ -3253,6 +3344,9 @@ namespace SidebarDiagnostics.Monitoring
                 case MetricKey.DriveWrite:
                     return Resources.DriveWriteLabel;
 
+                case MetricKey.NetworkPing:
+                    return Resources.NetworkPingLabel;
+
                 default:
                     return "Unknown";
             }
@@ -3333,6 +3427,9 @@ namespace SidebarDiagnostics.Monitoring
 
                 case DataType.IP:
                     return string.Empty;
+
+                case DataType.Millisecond:
+                    return " ms";
 
                 default:
                     throw new ArgumentException("Invalid DataType.");

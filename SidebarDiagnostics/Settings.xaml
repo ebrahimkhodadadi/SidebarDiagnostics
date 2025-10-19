@@ -286,6 +286,16 @@
                                                                             </Setter.Value>
                                                                         </Setter>
                                                                     </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding TypeString}" Value="System.String">
+                                                                        <Setter Property="Content">
+                                                                            <Setter.Value>
+                                                                                <StackPanel>
+                                                                                    <Label Content="{Binding Path=Name, Mode=OneTime}" />
+                                                                                    <TextBox Text="{Binding Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Tooltip, Mode=OneTime}" />
+                                                                                </StackPanel>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
                                                         </ContentControl.Style>
@@ -294,7 +304,7 @@
                                                                 <Setter Property="VerticalAlignment" Value="Center" />
                                                                 <Setter Property="Margin" Value="0,5" />
                                                             </Style>
-                                                            
+
                                                             <Style TargetType="{x:Type StackPanel}">
                                                                 <Setter Property="Orientation" Value="Horizontal" />
                                                                 <Setter Property="Margin" Value="0,5" />
@@ -306,7 +316,7 @@
                                                                     </Style>
                                                                     <Style TargetType="{x:Type TextBox}">
                                                                         <Setter Property="VerticalAlignment" Value="Center" />
-                                                                        <Setter Property="Width" Value="40" />
+                                                                        <Setter Property="Width" Value="80" />
                                                                         <Setter Property="MaxLines" Value="1" />
                                                                     </Style>
                                                                 </Style.Resources>
